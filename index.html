@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -73,7 +73,7 @@ l<!DOCTYPE html>
         .bottom-panel { width: 94vw; max-width: 450px; margin-top: 10px; }
         .players-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .player-card { background: #34495e; padding: 8px; border-radius: 10px; opacity: 0.4; text-align: center; border-bottom: 4px solid transparent; transition: 0.3s; }
-        .player-card.active { opacity: 1; border-bottom-color: #2ecc71; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .player-card.active { opacity: 1; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .btn-roll { padding: 8px; font-size: 14px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; width: 100%; background: #2ecc71; color: white; margin-top: 5px; }
         .btn-roll:disabled { background: #7f8c8d; cursor: not-allowed; }
         
@@ -175,7 +175,7 @@ l<!DOCTYPE html>
                 card.innerHTML = `
                     <div style="color: ${pColors[i]}; font-size: 11px; font-weight: bold;">Pemain ${i+1}</div>
                     <div style="font-size: 15px; font-weight: bold;">Rp <span id="money-${i}">50.000</span></div>
-                    <button  id="roll-${i}" class="btn-roll" onclick="playTurn(${i})" ${i !== 0 ? 'disabled' : ''}>KOCOK</button>
+                    <button  id="roll-${i}" class="btn-roll" onclick="playTurn(${i})" ${i !== 0 ? 'disabled' : ''} style="background-color: ${pColors[i]}">KOCOK</button>
                 `;
                 cardsContainer.appendChild(card);
             }
@@ -318,8 +318,12 @@ l<!DOCTYPE html>
             currentPlayer = (pIdx + 1) % players.length;
             document.getElementById(`roll-${currentPlayer}`).disabled = false;
             document.getElementById(`card-${currentPlayer}`).classList.add('active');
+            const newCard = document.getElementById(`card-${currentPlayer}`);
+            
+    newCard.style.borderBottomColor = pColors[currentPlayer];
             isMoving = false;
         }
+        
     </script>
 </body>
 </html>
