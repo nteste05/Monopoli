@@ -60,24 +60,20 @@
 
         .pion { width: 16px; height: 16px; border-radius: 50%; position: absolute; border: 2px solid white; z-index: 50; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         
-        /* Container Kos-kosan */
-        .house-container { 
-            position: absolute; top: 2px; right: 2px; display: flex; flex-direction: column; gap: 1px; 
-        }
-        .house { 
-            width: 8px; height: 6px; background: #e67e22; border: 1px solid #d35400; border-radius: 1px;
-            animation: popIn 0.3s ease-out;
-        }
-        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+        .house-container { position: absolute; top: 2px; right: 2px; display: flex; flex-direction: column; gap: 1px; }
+        .house { width: 8px; height: 6px; background: #e67e22; border: 1px solid #d35400; border-radius: 1px; }
 
         .bottom-panel { width: 94vw; max-width: 450px; margin-top: 10px; }
         .players-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .player-card { background: #34495e; padding: 8px; border-radius: 10px; opacity: 0.4; text-align: center; border-bottom: 4px solid transparent; transition: 0.3s; }
-        .player-card.active { opacity: 1; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .btn-roll { padding: 8px; font-size: 14px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; width: 100%; background: #2ecc71; color: white; margin-top: 5px; }
-        .btn-roll:disabled { background: #7f8c8d; cursor: not-allowed; }
+        .player-card.active { opacity: 1; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-bottom-color: #2ecc71; }
+        .btn-roll { padding: 8px; font-size: 14px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; width: 100%; background: #2ecc71; color: white; margin-top: 5px;}
         
         #log { background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; height: 50px; overflow-y: auto; font-size: 12px; border-left: 3px solid #f1c40f; margin-bottom: 8px; line-height: 1.4; color: #f1f2f6; }
+        .player-card button {
+            pointer-events: none; cursor: not-allowed;}
+        .player-card.active button {
+            pointer-events: auto; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -99,16 +95,12 @@
     <div class="board-container">
         <div class="center-text">MONOPOLI RUNGKAD</div>
         <div id="dice-display">1</div>
-        <div class="board" id="board">
-            <!-- Isi petak via JS -->
-        </div>
+        <div class="board" id="board"></div>
     </div>
 
     <div class="bottom-panel">
         <div id="log">> Selamat Datang! Tentukan jumlah pemain.</div>
-        <div class="players-row" id="player-cards-container">
-            <!-- Kartu pemain via JS -->
-        </div>
+        <div class="players-row" id="player-cards-container"></div>
     </div>
 
     <script>
@@ -142,188 +134,252 @@
         let currentPlayer = 0;
         let propertyState = Array(20).fill(null).map(() => ({ owner: null, houses: 0 }));
         let isMoving = false;
-        
 
         function startGame(num) {
             document.getElementById('setup-overlay').style.display = 'none';
-            const board = document.getElementById('board');
-            const cardsContainer = document.getElementById('player-cards-container');
-            
-            boardData.forEach((t, i) => {
-                const d = document.createElement('div');
-                d.className = `cell ${t.type}`; d.id = `cell-${i}`; d.style.gridArea = gridPos[i];
-                d.innerHTML = `
-                    <div id="h-container-${i}" class="house-container"></div>
-                    <div class="icon" style="font-size:14px">${t.icon}</div>
-                    <div style="margin-top:3px">${t.name}</div>
-                    ${t.price ? '<small style="color:#666; margin-top:3px">Rp '+t.price+'</small>' : ''}
-                `;
-                board.appendChild(d);
-            });
-
+            initBoard();
             for(let i=0; i<num; i++) {
                 players.push({ id: i, pos: 0, money: 500000 });
-                const pion = document.createElement('div');
-                pion.id = `pion-${i}`; pion.className = 'pion';
-                pion.style.backgroundColor = pColors[i];
-                board.appendChild(pion);
-
-                const card = document.createElement('div');
-                card.id = `card-${i}`; card.className = `player-card ${i === 0 ? 'active' : ''}`;
-                
-
-                card.innerHTML = `
-                    <div style="color: ${pColors[i]}; font-size: 11px; font-weight: bold;">Pemain ${i+1}</div>
-                    <div style="font-size: 15px; font-weight: bold;">Rp <span id="money-${i}">500.000</span></div>
-                    <button  id="roll-${i}" class="btn-roll" onclick="playTurn(${i})" ${i !== 0 ? 'disabled' : ''} style="background-color: ${pColors[i]}">KOCOK</button>
-                `;
-                cardsContainer.appendChild(card);
+                createPlayerCard(i);
+                createPion(i);
             }
-            updatePionPositions();
-            updateLog("Permainan Dimulai! Giliran Pemain 1.");
-            
+            updateTurn();
         }
 
-        function updateLog(msg) {
-            const log = document.getElementById('log');
-            log.innerHTML = `> ${msg}<br>${log.innerHTML}`;
-        }
-        
-
-        function updatePionPositions() {
-            players.forEach((p, i) => {
-                const cell = document.getElementById(`cell-${p.pos}`);
-                const pion = document.getElementById(`pion-${i}`);
-                const offset = (i * 3); 
-                pion.style.left = (cell.offsetLeft + 4 + offset) + 'px';
-                pion.style.top = (cell.offsetTop + 18 + offset) + 'px';
+        function initBoard() {
+            const board = document.getElementById('board');
+            boardData.forEach((tile, i) => {
+                const cell = document.createElement('div');
+                cell.className = `cell ${tile.type}`;
+                cell.style.gridArea = gridPos[i].replace(/\//g, ' / ');
+                cell.innerHTML = `<div style="font-size:14px">${tile.icon}</div><div style="font-size:8px; margin-top:3px">${tile.name}</div>${tile.price ? `<div style="font-size:9px; margin-top:3px">Rp${tile.price}</div>` : ''}<div class="house-container" id="h-cont-${i}"></div>`;
+                board.appendChild(cell);
             });
         }
 
-        async function playTurn(pIdx) {
-            if (isMoving) return;
-            isMoving = true;
-            
-            const diceDisp = document.getElementById('dice-display');
-            diceDisp.style.display = 'flex';
-            
-            let roll = 0;
-            for(let i=0; i<10; i++) {
-                roll = Math.floor(Math.random() * 6) + 1;
-                diceDisp.innerText = roll;
-                await new Promise(r => setTimeout(r, 60));
-            }
-            
-            await new Promise(r => setTimeout(r, 600));
-            diceDisp.style.display = 'none';
-
-            for(let i=0; i<roll; i++) {
-                players[pIdx].pos = (players[pIdx].pos + 1) % 20;
-                if(players[pIdx].pos === 0) {
-                    players[pIdx].money += 20000;
-                    updateLog(`P${pIdx+1} lewat START, dapat bonus Rp 20.000`);
-                }
-                updatePionPositions();
-                await new Promise(r => setTimeout(r, 500));
-            }
-
-            handleLand(pIdx);
+        function createPlayerCard(i) {
+            const container = document.getElementById('player-cards-container');
+            container.innerHTML += `<div class="player-card" id="pc-${i}">
+                <div style="font-size:12px; font-weight:bold; color:${pColors[i]}">Pemain ${i+1}</div>
+                <div style="font-size:15px;font-weight:bold" id="money-${i}">Rp500.000</div>
+                <button id="btn-roll-${i}" class="btn-roll" onclick="rollDice()" style="background-color:${pColors[i]} ">KOCOK</button>
+            </div>`;
         }
 
-        function handleLand(pIdx) {
-            const pos = players[pIdx].pos;
-            const tile = boardData[pos];
-            const state = propertyState[pos];
+        function createPion(i) {
+            const pion = document.createElement('div');
+            pion.className = 'pion';
+            pion.id = `pion-${i}`;
+            pion.style.background = pColors[i];
+            document.querySelector('.board-container').appendChild(pion);
+            updatePionPos(i);
+        }
 
-            if(tile.type === "prop") {
-                if(state.owner === null) {
-                    // BELI PROPERTI BARU
-                    if(players[pIdx].money >= tile.price) {
-                        if(confirm(`Beli ${tile.name} seharga Rp ${tile.price}?`)) {
-                            players[pIdx].money -= tile.price;
-                            state.owner = pIdx;
-                            document.getElementById(`cell-${pos}`).style.backgroundColor = pColors[pIdx].replace('var', 'rgba').replace(')', ', 0.2)');
-                            document.getElementById(`cell-${pos}`).style.borderColor = pColors[pIdx];
-                            updateLog(`P${pIdx+1} membeli lahan ${tile.name}`);
-                        }
+        function updatePionPos(i) {
+            const p = players[i];
+            const cell = document.getElementsByClassName('cell')[p.pos];
+            const rect = cell.getBoundingClientRect();
+            const boardRect = document.querySelector('.board-container').getBoundingClientRect();
+            const pion = document.getElementById(`pion-${i}`);
+            pion.style.left = (rect.left - boardRect.left + 5 + (i*3)) + 'px';
+            pion.style.top = (rect.top - boardRect.top + 5 + (i*3)) + 'px';
+        }
+
+        async function rollDice() {
+            if(isMoving) return;
+            isMoving = true;
+            
+            const disp = document.getElementById('dice-display');
+            disp.style.display = 'flex';
+            
+            let dice = 0;
+            for(let i=0; i<10; i++) {
+                dice = Math.floor(Math.random() * 6) + 1;
+                disp.innerText = dice;
+                await new Promise(r => setTimeout(r, 90));
+            }
+            
+            await new Promise(r => setTimeout(r, 700));
+            disp.style.display = 'none';
+
+            let p = players[currentPlayer];
+            for(let i=0; i<dice; i++) {
+                p.pos = (p.pos + 1) % 20;
+                if(p.pos === 0) { p.money += 20000; addLog(`P${currentPlayer+1} lewat START (+Rp 20.000)`); }
+                updatePionPos(currentPlayer);
+                await new Promise(r => setTimeout(r, 500));
+            }
+            handleTile(p.pos);
+            currentPlayer = (currentPlayer + 1) % players.length;
+            updateTurn();
+            isMoving = false;
+        }
+
+        function handleTile(idx) {
+            const tile = boardData[idx];
+            const prop = propertyState[idx];
+            let p = players[currentPlayer];
+
+            if(tile.type === 'prop') {
+                if(prop.owner === null) {
+                    if(p.money >= tile.price && confirm(`Beli ${tile.name} Rp ${tile.price}?`)) {
+                        p.money -= tile.price;
+                        prop.owner = currentPlayer;
+                        document.getElementsByClassName('cell')[idx].style.border = `2px solid ${pColors[currentPlayer]}`;
+                        addLog(`P${currentPlayer+1} beli ${tile.name} seharga Rp ${tile.price}`);
                     }
-                } else if(state.owner === pIdx) {
-                    // BANGUN KOSAN
-                    if(state.houses < 5) {
-                        const costHouse = Math.floor(tile.price * 0.7);
-                        if(players[pIdx].money >= costHouse) {
-                            if(confirm(`Bangun Kosan level ${state.houses + 1} di ${tile.name}? Biaya: Rp ${costHouse}`)) {
-                                players[pIdx].money -= costHouse;
-                                state.houses++;
-                                const hCont = document.getElementById(`h-container-${pos}`);
-                                const houseDiv = document.createElement('div');
-                                houseDiv.className = 'house';
-                                hCont.appendChild(houseDiv);
-                                updateLog(`P${pIdx+1} membangun KOS level ${state.houses} di ${tile.name}`);
-                            }
+                } else if(prop.owner !== currentPlayer) {
+                    let rent = Math.floor(tile.price * 0.4);
+                    if(prop.houses === 5){
+                        rent += Math.floor(20000 + (prop.houses * 5000));
+                    } else {rent += Math.floor(prop.houses * 5000);
+                    }
+                    p.money -= rent;
+                    players[prop.owner].money += rent;
+                    addLog(`P${currentPlayer+1} bayar sewa ke P${prop.owner+1} Rp ${rent}`);
+                    checkBankruptcy(currentPlayer); // CEK RUNGKAD
+                } else {
+                    if(prop.houses < 5 && confirm(`Bangun Kos di ${tile.name} (Rp 10.000)?`)) {
+                        if(p.money >= 10000) {
+                            p.money -= 10000;
+                            prop.houses++;
+                            drawHouses(idx);
+                            addLog(`P${currentPlayer+1} bangun Kos di ${tile.name} seharga Rp 10.000`);
                         }
                     } else {
-                        updateLog(`P${pIdx+1} beristirahat di kosan mewahnya.`);
-                    }
-                } else {
-                    // BAYAR SEWA
-                    let rent = Math.floor(tile.price * 0.4);
-                    // Sewa naik 50% per level kosan
-                    if (state.houses === 5){
-                        rent += Math.floor(rent * 0.8 * state.houses + 20000);
-                    }
-                    else {rent += Math.floor(rent * 0.8 * state.houses);
-                    }
-                    players[pIdx].money -= rent;
-                    players[state.owner].money += rent;
-                    updateLog(`P${pIdx+1} bayar KOS level ${state.houses} ${tile.name} ke P${state.owner+1} sebesar Rp ${rent}`);
+                        addLog(`P${currentPlayer+1} beristirahat di kosan mewahnya!`);
+                    };
                 }
-            } else if(tile.type === "tax") {
-                players[pIdx].money -= 25000;
-                updateLog(`P${pIdx+1} kena PINJOL! Bayar bunga Rp 25.000`);
-            } else if(tile.type === "chance") {
+            } else if(tile.type === 'chance') {
                 const bonus = (Math.floor(Math.random() * 8) + 1) * 5000;
                 const isGood = Math.random() > 0.3;
                 if(isGood) {
-                    players[pIdx].money += bonus;
-                    updateLog(`DANA KAGET! P${pIdx+1} untung Rp ${bonus}`);
+                    p.money += bonus;
+                    const pesanKoplak= [
+`P${currentPlayer+1} dapat gaji ke-15 Rp ${bonus}`,
+`P${currentPlayer+1} Nemu uang di jalan Rp ${bonus}`,
+`P${currentPlayer+1} Menang undian acara tv Rp ${bonus}`
+];
+
+const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
+
+addLog(randomPesan);
+
                 } else {
-                    players[pIdx].money -= bonus;
-                    updateLog(`KENA TIPU! P${pIdx+1} rugi Rp ${bonus}`);
+                    p.money -= bonus;
+                    const pesanKoplak= [
+`Apes! P${currentPlayer+1} kena Tipu Rp ${bonus}`,
+`Waduh, uang P${currentPlayer+1} hilang di perjalanan Rp ${bonus}`,
+`Uang P${currentPlayer+1} diambil tuyul Rp ${bonus}`
+];
+
+const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
+
+addLog(randomPesan);
+
+                    checkBankruptcy(currentPlayer); // CEK RUNGKAD
                 }
-            } else if(tile.type === "jail") {
-            players[pIdx].money -= 20000;
-                updateLog(`P${pIdx+1} Bayar penjara Rp 20.000`);
             }
-
-            finishTurn(pIdx);
+            else if(tile.type === 'tax') {
+                p.money -= tile.price;
+                addLog(`P${currentPlayer+1} Kena PINJOL! Bayar Rp ${tile.price}`);
+                checkBankruptcy(currentPlayer); // CEK RUNGKAD
+            } else if(tile.type === "jail") {
+            p.money -= 20000;
+                addLog(`P${currentPlayer+1} Masuk penjara bayar Rp 20.000`);
+                checkBankruptcy(currentPlayer); // CEK RUNGKAD
+            }
+            updateUI();
         }
 
-        function finishTurn(pIdx) {
-            players.forEach((p, i) => {
-                document.getElementById(`money-${i}`).innerText = p.money.toLocaleString('id-ID');
-                document.getElementById(`roll-${i}`).disabled = true;
-                document.getElementById(`card-${i}`).classList.remove('active');
-            });
+        // --- LOGIKA JUAL OTOMATIS (DITAMBAHKAN) ---
+        function checkBankruptcy(pIdx) {
+            let p = players[pIdx];
+            if (p.money > 0) return;
 
-            if (players[pIdx].money <= 0) {
-    alert(`Pemain ${pIdx + 1} RUNGKAD! Game Berakhir.`);
-    location.reload();
-} else if (players[pIdx].money >= 3000000) {
-    alert(`Pemain ${pIdx + 1} MENANG BANYAK! Saldo mencapai 3 juta.`);
-    location.reload();
-    return;
-}
+            addLog(`⚠️ P${pIdx+1} Minus! Menjual aset...`);
 
-            currentPlayer = (pIdx + 1) % players.length;
-            document.getElementById(`roll-${currentPlayer}`).disabled = false;
-            document.getElementById(`card-${currentPlayer}`).classList.add('active');
-            const newCard = document.getElementById(`card-${currentPlayer}`);
-            
-    newCard.style.borderBottomColor = pColors[currentPlayer];
-            isMoving = false;
+            // Cari semua aset milik pemain ini
+            for (let i = 0; i < propertyState.length; i++) {
+                if (p.money > 0) break; 
+                let ps = propertyState[i];
+                if (ps.owner === pIdx) {
+                    // Jual Kos dulu jika ada
+                    while (ps.houses > 0 && p.money <= 0) {
+                        ps.houses--;
+                        p.money += 5000; // Harga jual kos
+                        drawHouses(i);
+                        addLog(`P${pIdx+1} jual 1 Kos di ${boardData[i].name} (+Rp 5.000)`);
+                    }
+                    // Jika masih minus, jual tanahnya
+                    if (p.money <= 0) {
+                        let refund = Math.floor(boardData[i].price * 0.6);
+                        p.money += refund;
+                        ps.owner = null;
+                        ps.houses = 0;
+                        document.getElementsByClassName('cell')[i].style.border = "2px solid transparent";
+                        drawHouses(i);
+                        addLog(`P${pIdx+1} jual Tanah ${boardData[i].name} (+Rp ${refund})`);
+                    }
+                }
+            }
+            const rankingText = [...players]
+        .sort((a, b) => b.money - a.money)
+        .map((p, idx) => `${idx + 1}. Pemain ${players.indexOf(p) + 1}: Rp ${p.money.toLocaleString()}`)
+        .join("\n");
+            if(p.money <= 0) {
+                addLog(`💀 P${pIdx+1} BENAR-BENAR RUNGKAD!`);
+                alert(`💀 Pemain ${pIdx+1} BENAR-BENAR RUNGKAD!\n\nPeringkat:\n${rankingText}`);
+                location.reload();
+            }
+            updateUI();
         }
+
+        function drawHouses(idx) {
+            const cont = document.getElementById(`h-cont-${idx}`);
+            cont.innerHTML = '';
+            for(let i=0; i<propertyState[idx].houses; i++) {
+                cont.innerHTML += '<div class="house"></div>';
+            }
+        }
+
+        function updateUI() {
+            const rankingText = [...players]
+        .sort((a, b) => b.money - a.money)
+        .map((p, idx) => `${idx + 1}. Pemain ${players.indexOf(p) + 1}: Rp${p.money.toLocaleString()}`)
+        .join("\n");
         
+            players.forEach((p, i) => {
+                document.getElementById(`money-${i}`).innerText = `Rp ${p.money.toLocaleString()}`;
+            
+                if (p.money >= 3000000) {
+                alert(`🎇🎆 Pemain ${i + 1} MENANG BANYAK!\n\n🏆 Peringkat:\n${rankingText}`);
+                location.reload();
+            };
+            });
+        }
+
+        function updateTurn() {
+            document.querySelectorAll('.player-card').forEach(c => c.classList.remove('active'));
+            document.getElementById(`pc-${currentPlayer}`).classList.add('active');
+            document.getElementById(`pc-${currentPlayer}`).style.borderBottomColor = pColors[currentPlayer];
+            
+            document.querySelectorAll('.player-card').forEach((card, index) => {
+                const rollBtn = card.querySelector('button');
+                if (index === currentPlayer) {
+                    card.classList.add('active');
+                    if (rollBtn) rollBtn.disabled = false;
+                } else {
+                    card.classList.remove('active');
+                    if (rollBtn) rollBtn.disabled = true;
+                }
+            });
+        }
+
+        function addLog(msg) {
+            const log = document.getElementById('log');
+            log.innerHTML = `<div>> ${msg}</div>` + log.innerHTML;
+        }
     </script>
 </body>
 </html>
