@@ -164,8 +164,18 @@
         function createPlayerCard(i) {
             const container = document.getElementById('player-cards-container');
             container.innerHTML += `<div class="player-card" id="pc-${i}">
-                <div style="font-size:12px; font-weight:bold; color:${pColors[i]}">Pemain ${i+1}</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div id="rank-display-${i}" style="font-size: 18px; font-weight: bold; color: white; 
+                    background-color: #888; width: 40px; height: 40px; 
+                    border-radius: 50%; display: flex; align-items: center; 
+                    justify-content: center; flex-shrink: 0;">
+                    -
+                </div>
+                <div>
+                <div style="font-size:13px; font-weight:bold; color:${pColors[i]}">Pemain ${i+1}</div>
                 <div style="font-size:15px;font-weight:bold" id="money-${i}">Rp500.000</div>
+                </div>
+                </div>
                 <button id="btn-roll-${i}" class="btn-roll" onclick="rollDice()" style="background-color:${pColors[i]} ">KOCOK</button>
             </div>`;
         }
@@ -353,23 +363,63 @@ addLog(randomPesan);
                 cont.innerHTML += '<div class="house"></div>';
             }
         }
-
-        function updateUI() {
-            const rankingText = [...players]
-        .sort((a, b) => b.money - a.money)
-        .map((p, idx) => `${idx + 1}. Pemain ${players.indexOf(p) + 1}: Rp${p.money.toLocaleString()}`)
-        .join("\n");
         
-            players.forEach((p, i) => {
-                document.getElementById(`money-${i}`).innerText = `Rp ${p.money.toLocaleString()}`;
+        function updateRankings() {
+            // 1. Hitung total kekayaan (Uang + Aset) untuk setiap player
+            let sortedPlayers = players.map((p, pIndex) => {
+                // Hitung nilai properti & kos yang dimiliki player ini
+                const propertyWealth = propertyState.reduce((total, prop, tileIdx) => {
+                    if (prop.owner === pIndex) {
+                        const tile = boardData[tileIdx];
+                        // Rumus: Harga Tanah + (Jumlah Kos * 10.000)
+                        return total + tile.price + (prop.houses * 10000);
+                    }
+                    return total;
+                }, 0);
+                
+                return {
+                    id: pIndex,
+                    totalWealth: p.money + propertyWealth
+                };
+            });
             
-                if (p.money >= 3000000) {
-                alert(`🎇🎆 Pemain ${i + 1} MENANG BANYAK!\n\n🏆 Peringkat:\n${rankingText}`);
-                location.reload();
-            };
+            // 2. Urutkan berdasarkan total kekayaan terbanyak
+            sortedPlayers.sort((a, b) => b.totalWealth - a.totalWealth);
+            
+            // 3. Update DOM berdasarkan urutan peringkat
+            sortedPlayers.forEach((player, index) => {
+                const rankElement = document.getElementById(`rank-display-${player.id}`);
+                if (rankElement) {
+                    // index + 1 karena array mulai dari 0
+                    rankElement.innerText = getOrdinal(index + 1);
+                }
             });
         }
-
+        
+        function updateUI() {
+            // Selalu urutkan data untuk teks pengumuman menang
+            const sortedForText = [...players].sort((a, b) => b.money - a.money);
+            const rankingText = sortedForText.map((p, idx) => `${idx + 1}. Pemain ${players.indexOf(p) + 1}: Rp${p.money.toLocaleString()}`).join("\n");
+            players.forEach((p, i) => {
+                // Update display uang
+                const moneyEl = document.getElementById(`money-${i}`);
+                if (moneyEl) moneyEl.innerText = `Rp ${p.money.toLocaleString()}`;
+                // Cek kondisi menang
+                if (p.money >= 3000000) {
+                    alert(`🎇🎆 Pemain ${i + 1} MENANG BANYAK!\n\n🏆 Peringkat:\n${rankingText}`);
+                    location.reload();
+                }
+            });
+            // Panggil updateRankings setiap kali UI diupdate
+            updateRankings();
+        }
+        
+        function getOrdinal(n) {
+            let s = ["th", "st", "nd", "rd"],
+            v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+        
         function updateTurn() {
             document.querySelectorAll('.player-card').forEach(c => c.classList.remove('active'));
             document.getElementById(`pc-${currentPlayer}`).classList.add('active');
