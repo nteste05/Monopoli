@@ -108,7 +108,7 @@
             { name: "START", type: "start", icon: "🚩" }, 
             { name: "Ambon", type: "prop", price: 10000, icon: "🏝️" },
             { name: "Batam", type: "prop", price: 11000, icon: "🏭" }, 
-            { name: "DANA KAGET", type: "chance", icon: "🎁" }, 
+            { name: "Kesempatan", type: "kesempatan", icon: "❓️" }, 
             { name: "Manado", type: "prop", price: 12000, icon: "🌋" }, 
             { name: "Samarinda", type: "prop", price: 13000, icon: "🌳" }, 
             { name: "PINJOL", type: "tax", price: 25000, icon: "💸" }, 
@@ -120,7 +120,7 @@
             { name: "Garut", type: "prop", price: 18000, icon: "🏞" }, 
             { name: "Solo", type: "prop", price: 19000, icon: "️🌇" }, 
             { name: "Jogja", type: "prop", price: 20000, icon: "⛩️" }, 
-            { name: "DANA KAGET", type: "chance", icon: "🎁" }, 
+            { name: "Kesempatan", type: "kesempatan", icon: "❓️" }, 
             { name: "Surabaya", type: "prop", price: 21000, icon: "⚓" }, 
             { name: "IKN", type: "prop", price: 22000, icon: "🗽" }, 
             { name: "PENJARA", type: "jail", icon: "⚖️" }, 
@@ -165,14 +165,14 @@
             const container = document.getElementById('player-cards-container');
             container.innerHTML += `<div class="player-card" id="pc-${i}">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <div id="rank-display-${i}" style="font-size: 18px; font-weight: bold; color: white; 
+                <div id="rank-display-${i}" style="font-size: 15px; font-weight: bold; color: white; 
                     background-color: #888; width: 40px; height: 40px; 
                     border-radius: 50%; display: flex; align-items: center; 
                     justify-content: center; flex-shrink: 0;">
                     -
                 </div>
                 <div>
-                <div style="font-size:13px; font-weight:bold; color:${pColors[i]}">Pemain ${i+1}</div>
+                <div style="font-size:14px; font-weight:bold; color:${pColors[i]}">Pemain ${i+1}</div>
                 <div style="font-size:15px;font-weight:bold" id="money-${i}">Rp500.000</div>
                 </div>
                 </div>
@@ -277,26 +277,22 @@
                 if(isGood) {
                     p.money += bonus;
                     const pesanKoplak= [
-`P${currentPlayer+1} dapat gaji ke-15 Rp ${bonus}`,
-`P${currentPlayer+1} Nemu uang di jalan Rp ${bonus}`,
-`P${currentPlayer+1} Menang undian acara tv Rp ${bonus}`
-];
-
-const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
-
-addLog(randomPesan);
+                        `P${currentPlayer+1} dapat gaji ke-15 Rp ${bonus}`,
+                        `P${currentPlayer+1} Nemu uang di jalan Rp ${bonus}`,
+                        `P${currentPlayer+1} Menang undian acara tv Rp ${bonus}`
+                    ];
+                    const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
+                    addLog(randomPesan);
 
                 } else {
                     p.money -= bonus;
                     const pesanKoplak= [
-`Apes! P${currentPlayer+1} kena Tipu Rp ${bonus}`,
-`Waduh, uang P${currentPlayer+1} hilang di perjalanan Rp ${bonus}`,
-`Uang P${currentPlayer+1} diambil tuyul Rp ${bonus}`
-];
-
-const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
-
-addLog(randomPesan);
+                        `Apes! P${currentPlayer+1} kena Tipu Rp ${bonus}`,
+                        `Waduh, uang P${currentPlayer+1} hilang di perjalanan Rp ${bonus}`,
+                        `Uang P${currentPlayer+1} diambil tuyul Rp ${bonus}`
+                    ];
+                    const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
+                    addLog(randomPesan);
 
                     checkBankruptcy(currentPlayer); // CEK RUNGKAD
                 }
@@ -305,10 +301,25 @@ addLog(randomPesan);
                 p.money -= tile.price;
                 addLog(`P${currentPlayer+1} Kena PINJOL! Bayar Rp ${tile.price}`);
                 checkBankruptcy(currentPlayer); // CEK RUNGKAD
-            } else if(tile.type === "jail") {
+            }
+            else if(tile.type === "jail") {
             p.money -= 20000;
                 addLog(`P${currentPlayer+1} Masuk penjara bayar Rp 20.000`);
                 checkBankruptcy(currentPlayer); // CEK RUNGKAD
+            }
+            else if(tile.type === "kesempatan") {
+                const isGood = Math.random() > 0.7;
+                if(isGood) {
+                    p.money += 100000;
+            addLog(`P${currentPlayer+1} Keliling Dunia dan menuju start dapat Rp 100.000`);
+            p.pos = 0;
+            updatePionPos(currentPlayer);
+                } else {
+                    p.pos = (p.pos + 3) % 24;
+                    updatePionPos(currentPlayer);
+                    addLog(`P${currentPlayer+1} Maju 3 petak`);
+                }
+                handleTile(p.pos);
             }
             updateUI();
         }
