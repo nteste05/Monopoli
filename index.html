@@ -51,6 +51,7 @@
         .tax { background: #fa8073 !important}
         .jail { background: #a6a6a6 !important;}
         .kesempatan { background: #ffe873 !important}
+        .parkir { background: #d8a2f5 !important}
 
 
         #dice-display {
@@ -119,7 +120,7 @@
             { name: "DANA KAGET", type: "chance", icon: "🎁" }, 
             { name: "Medan", type: "prop", price: 16000, icon: "🏢" }, 
             { name: "Makassar", type: "prop", price: 17000, icon: "🚢" }, 
-            { name: "Garut", type: "prop", price: 18000, icon: "🏞" }, 
+            { name: "Istirahat", type: "parkir", icon: "🧘" }, 
             { name: "Solo", type: "prop", price: 19000, icon: "️🌇" }, 
             { name: "Jogja", type: "prop", price: 20000, icon: "⛩️" }, 
             { name: "Kesempatan", type: "kesempatan", icon: "❓️" }, 
@@ -262,7 +263,7 @@
                     } else if(prop.houses === 4){
                         rent += Math.floor((rent * 0.5) + 40000);
                     } else if(prop.houses === 5){
-                        rent += Math.floor(rent + 50000);
+                        rent += Math.floor((rent * 2) + 50000);
                     }
                     p.money -= rent;
                     players[prop.owner].money += rent;
@@ -324,13 +325,23 @@
             p.pos = 0;
             updatePionPos(currentPlayer);
                 } else {
-                    const langkah= [1,2,3];
+                    const langkah= [1,2,3,4,5,6];
                     const randomLangkah = langkah[Math.floor(Math.random() * langkah.length)];
                     p.pos = (p.pos + randomLangkah) % 24;
                     updatePionPos(currentPlayer);
                     addLog(`P${currentPlayer+1} Maju ${randomLangkah} petak`);
                 }
                 handleTile(p.pos);
+            }
+            else if(tile.type === "parkir") {
+                p.money += 50000;
+                const pesanKoplak= [
+                        `P${currentPlayer+1} dapat inspirasi dari tidur senilai Rp 50.000`,
+                        `P${currentPlayer+1} dapat inspirasi dari mancing senilai Rp 50.000`,
+                        `P${currentPlayer+1} dapat inspirasi dari meditasi senilai Rp 50.000`
+                    ];
+                    const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
+                    addLog(randomPesan);
             }
             updateUI();
         }
