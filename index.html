@@ -386,61 +386,53 @@
             }
         }
         
-        function updateRankings() {
-            // 1. Hitung total kekayaan (Uang + Aset) untuk setiap player
-            let sortedPlayers = players.map((p, pIndex) => {
-                // Hitung nilai properti & kos yang dimiliki player ini
-                const propertyWealth = propertyState.reduce((total, prop, tileIdx) => {
-                    if (prop.owner === pIndex) {
-                        const tile = boardData[tileIdx];
-                        // Rumus: Harga Tanah + (Jumlah Kos * 10.000)
-                        return total + tile.price + (prop.houses * 10000);
-                    }
-                    return total;
-                }, 0);
-                
-                return {
-                    id: pIndex,
-                    totalWealth: p.money + propertyWealth
-                };
-            });
-            
-            // 2. Urutkan berdasarkan total kekayaan terbanyak
-            sortedPlayers.sort((a, b) => b.totalWealth - a.totalWealth);
-            
-            // 3. Update DOM berdasarkan urutan peringkat
-            sortedPlayers.forEach((player, index) => {
-                const rankElement = document.getElementById(`rank-display-${player.id}`);
-                if (rankElement) {
-                    // index + 1 karena array mulai dari 0
-                    rankElement.innerText = getOrdinal(index + 1);
-                }
-            });
-        }
-        
         function updateUI() {
-            // Selalu urutkan data untuk teks pengumuman menang
-            const sortedForText = [...players].sort((a, b) => b.money - a.money);
-            const rankingText = sortedForText.map((p, idx) => `${idx + 1}. Pemain ${players.indexOf(p) + 1}: Rp${p.money.toLocaleString()}`).join("\n");
-            players.forEach((p, i) => {
-                // Update display uang
-                const moneyEl = document.getElementById(`money-${i}`);
-                if (moneyEl) moneyEl.innerText = `Rp ${p.money.toLocaleString()}`;
-                // Cek kondisi menang
-                if (p.money >= 3000000) {
-                    alert(`🎇🎆 Pemain ${i + 1} MENANG BANYAK!\n\n🏆 Peringkat:\n${rankingText}`);
-                    location.reload();
+            // 1. Map data player ke dalam array baru yang menyertakan perhitungan totalWealth
+             let playerWealthData = players.map((p, pIndex) => {
+                 // Hitung nilai properti & kos milik player ini
+                 const propertyWealth = propertyState.reduce((total, prop, tileIdx) => {
+                     if (prop.owner === pIndex) {
+                         const tile = boardData[tileIdx];
+                         // Rumus: Harga Tanah + (Jumlah Kos * 10.000)
+                         return total + tile.price + (prop.houses * 10000);
+                       }
+                     return total;
+                 }, 0);
+                 return {
+                     id: pIndex,
+                     money: p.money,
+                     totalWealth: p.money + propertyWealth
+                 };
+             });
+            // 2. Urutkan berdasarkan totalWealth terbanyak untuk keperluan Ranking & Pengumuman
+            const sortedPlayers = [...playerWealthData].sort((a, b) => b.totalWealth - a.totalWealth);
+            // 3. Update DOM (Tampilan Money & Ranking di Layar)
+            playerWealthData.forEach((data) => {
+                // Update display uang tunai (tetap p.money agar pemain tahu uang cash mereka)
+                const moneyEl = document.getElementById(`money-${data.id}`);
+                if (moneyEl) moneyEl.innerText = `Rp ${data.money.toLocaleString()}`;
+                // Update display ranking (1st, 2nd, dst) berdasarkan posisi di sortedPlayers
+                const rankIndex = sortedPlayers.findIndex(p => p.id === data.id);
+                const rankElement = document.getElementById(`rank-display-${data.id}`);
+                if (rankElement) {
+                    rankElement.innerText = getOrdinal(rankIndex + 1);
                 }
             });
-            // Panggil updateRankings setiap kali UI diupdate
-            updateRankings();
+            // 4. Cek Kondisi Menang berdasarkan Total Wealth pemain peringkat 1
+            const leader = sortedPlayers[0]; 
+            if (leader.totalWealth >= 3000000) {
+                const rankingText = sortedPlayers.map((p, idx) => `${idx + 1}. Pemain ${p.id + 1}: Rp${p.totalWealth.toLocaleString()}`).join("\n");
+                
+                alert(`🎇🎆 Pemain ${leader.id + 1} MENANG!\n(Kekayaan Total: Rp${leader.totalWealth.toLocaleString()})\n\n🏆 Peringkat:\n${rankingText}`);
+                location.reload();
+            }
         }
         
         function getOrdinal(n) {
             let s = ["th", "st", "nd", "rd"],
-            v = n % 100;
+                v = n % 100;
             return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    }
+        }
         
         function updateTurn() {
             document.querySelectorAll('.player-card').forEach(c => c.classList.remove('active'));
