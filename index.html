@@ -253,9 +253,16 @@
                     }
                 } else if(prop.owner !== currentPlayer) {
                     let rent = Math.floor(tile.price * 0.4);
-                    if(prop.houses === 5){
-                        rent += Math.floor(20000 + (prop.houses * 5000));
-                    } else {rent += Math.floor(prop.houses * 5000);
+                    if(prop.houses === 1){
+                        rent += Math.floor((rent * 0.5 ) + 5000);
+                    } else if(prop.houses === 2){
+                        rent += Math.floor((rent * 0.5) + 10000);
+                    } else if(prop.houses === 3){
+                        rent += Math.floor((rent * 0.5) + 20000);
+                    } else if(prop.houses === 4){
+                        rent += Math.floor((rent * 0.5) + 40000);
+                    } else if(prop.houses === 5){
+                        rent += Math.floor(rent + 50000);
                     }
                     p.money -= rent;
                     players[prop.owner].money += rent;
@@ -312,14 +319,16 @@
             else if(tile.type === "kesempatan") {
                 const isGood = Math.random() > 0.7;
                 if(isGood) {
-                    p.money += 100000;
-            addLog(`P${currentPlayer+1} Keliling Dunia dan menuju start dapat Rp 100.000`);
+                    p.money += 150000;
+            addLog(`P${currentPlayer+1} Keliling Dunia dan menuju start dapat Rp 150.000`);
             p.pos = 0;
             updatePionPos(currentPlayer);
                 } else {
-                    p.pos = (p.pos + 3) % 24;
+                    const langkah= [1,2,3];
+                    const randomLangkah = langkah[Math.floor(Math.random() * langkah.length)];
+                    p.pos = (p.pos + randomLangkah) % 24;
                     updatePionPos(currentPlayer);
-                    addLog(`P${currentPlayer+1} Maju 3 petak`);
+                    addLog(`P${currentPlayer+1} Maju ${randomLangkah} petak`);
                 }
                 handleTile(p.pos);
             }
