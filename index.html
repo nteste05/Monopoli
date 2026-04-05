@@ -335,6 +335,19 @@
             updateUI();
         }
 
+        function getWealth(pIdx) {
+            const p = players[pIdx];
+            const propertyWealth = propertyState.reduce((total, prop, tileIdx) => {
+                if (prop.owner === pIdx) {
+                    const tile = boardData[tileIdx];
+                    // Rumus: Harga Tanah + (Jumlah Kos * 10.000)
+                    return total + tile.price + (prop.houses * 10000);
+                }
+                return total;
+            }, 0);
+            return p.money + propertyWealth;
+        }
+
         // --- LOGIKA JUAL OTOMATIS (DITAMBAHKAN) ---
         function checkBankruptcy(pIdx) {
             let p = players[pIdx];
@@ -366,14 +379,23 @@
                     }
                 }
             }
-            const rankingText = [...players]
-        .sort((a, b) => b.money - a.money)
-        .map((p, idx) => `${idx + 1}. Pemain ${players.indexOf(p) + 1}: Rp ${p.money.toLocaleString()}`)
-        .join("\n");
-            if(p.money <= 0) {
-                addLog(`💀 P${pIdx+1} BENAR-BENAR RUNGKAD!`);
-                alert(`💀 Pemain ${pIdx+1} BENAR-BENAR RUNGKAD!\n\nPeringkat:\n${rankingText}`);
-                location.reload();
+            if (p.money < 0) {
+                addLog(`💀 P${pIdx + 1} BENAR-BENAR RUNGKAD! Aset sudah habis.`);
+                // Susun peringkat akhir berdasarkan Total Wealth (termasuk pemain lain yang masih punya aset)
+                const sortedFinal = players.map((player, index) => ({
+                    id: index,
+                    totalWealth: getWealth(index)
+                })).sort((a, b) => b.totalWealth - a.totalWealth);
+                
+                const rankingText = sortedFinal
+                .map((data, idx) => `${idx + 1}. Pemain ${data.id + 1}: Rp${data.totalWealth.toLocaleString()}`)
+                .join("\n");
+                
+                // Gunakan setTimeout agar log "Rungkad" sempat terlihat sebelum alert muncul
+                setTimeout(() => {
+                    alert(`💀 Pemain ${pIdx + 1} RUNGKAD!\n\n🏆 Peringkat Akhir (Total Wealth):\n${rankingText}`);
+                    location.reload();
+                }, 100);
             }
             updateUI();
         }
@@ -421,10 +443,13 @@
             // 4. Cek Kondisi Menang berdasarkan Total Wealth pemain peringkat 1
             const leader = sortedPlayers[0]; 
             if (leader.totalWealth >= 3000000) {
+                addLog(`🏆 PERMAINAN BERAKHIR: Pemain ${leader.id + 1} Menang dengan Total Kekayaan Rp${leader.totalWealth.toLocaleString()}!`);
                 const rankingText = sortedPlayers.map((p, idx) => `${idx + 1}. Pemain ${p.id + 1}: Rp${p.totalWealth.toLocaleString()}`).join("\n");
                 
-                alert(`🎇🎆 Pemain ${leader.id + 1} MENANG!\n(Kekayaan Total: Rp${leader.totalWealth.toLocaleString()})\n\n🏆 Peringkat:\n${rankingText}`);
-                location.reload();
+                setTimeout(() => {
+                    alert(`🎇🎆 Pemain ${leader.id + 1} MENANG!\n(Total Wealth: Rp${leader.totalWealth.toLocaleString()})\n\n🏆 Peringkat:\n${rankingText}`);
+                    location.reload();
+                }, 100);
             }
         }
         
