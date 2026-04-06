@@ -1,0 +1,11 @@
+{
+    "name": "Monopoli Rungkad Official",
+    "short_name": "Rungkad",
+    "description": "Sensasi permainan papan paling mendebarkan. Menang atau Rungkad!",
+    "icons": "mrungkad-favicon.jpg",
+    "theme_color": "#2D2D2D",
+    "background_color": "#2D2D2D",
+    "display": "standalone",
+    "start_url": "/",
+    "orientation": "portrait"
+}
