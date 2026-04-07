@@ -527,6 +527,7 @@
                 // Gunakan setTimeout agar log "Rungkad" sempat terlihat sebelum alert muncul
                 setTimeout(() => {
                     alert(`💀 Pemain ${pIdx + 1} RUNGKAD!\n\n🏆 Peringkat Akhir (Total Wealth):\n${rankingText}`);
+                    openRandomTab();
                     location.reload();
                 }, 100);
             }
@@ -581,6 +582,7 @@
                 
                 setTimeout(() => {
                     alert(`🎇🎆 Pemain ${leader.id + 1} MENANG!\n(Total Wealth: Rp${leader.totalWealth.toLocaleString()})\n\n🏆 Peringkat:\n${rankingText}`);
+                    openRandomTab();
                     location.reload();
                 }, 100);
             }
@@ -615,26 +617,39 @@
         }
         
         const sidebar = document.getElementById("mySidebar");
-    const overlaynav = document.getElementById("overlaynav");
-
-    function openNav() {
-        sidebar.style.width = "280px";
-        overlaynav.style.display = "block";
-        // Mencegah scroll pada body saat menu buka
-        document.body.style.overflow = "hidden";
-    }
-
-    function closeNav() {
-        sidebar.style.width = "0";
-        overlaynav.style.display = "none";
-        // Mengembalikan scroll body
-        document.body.style.overflow = "auto";
-    }
+        const overlaynav = document.getElementById("overlaynav");
+        
+        function openNav() {
+            sidebar.style.width = "280px";
+            overlaynav.style.display = "block";
+            // Mencegah scroll pada body saat menu buka
+            document.body.style.overflow = "hidden";
+        }
+        
+        function closeNav() {
+            sidebar.style.width = "0";
+            overlaynav.style.display = "none";
+            // Mengembalikan scroll body
+            document.body.style.overflow = "auto";
+        }
+        
+        const urlList = [
+            "https://www.google.com/search?q=monopoli+rungkad+nteste05.github.io",
+            "https://www.google.com/search?q=game+monopoli+rungkad",
+            "https://www.google.com/search?q=tentang+monopoli+rungkad"
+        ];
+        
+        function openRandomTab() {
+            const randomIndex = Math.floor(Math.random() * urlList.length);
+            const randomURL = urlList[randomIndex];
+            window.open(randomURL, '_blank');
+        }
         
     </script>
     <footer>
-    <p>&copy; 2026 <a style="color: inherit; text-decoration: none;" href="https://nteste05.github.io/Monopoli">Monopoli Rungkad Indonesia.</a> <br> 
-    <small>Konten ini hanya untuk tujuan hiburan dan permainan papan.</small></p>
-</footer>
+        <p>&copy; 2026 <a style="color: inherit; text-decoration: none;" href="https://nteste05.github.io/Monopoli">Monopoli Rungkad Indonesia.</a> <br> 
+        <small>Konten ini hanya untuk tujuan hiburan dan permainan papan.</small>
+        </p>
+    </footer>
 </body>
 </html>
