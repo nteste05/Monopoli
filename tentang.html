@@ -381,7 +381,7 @@
     <section id="mainkan" style="text-align: center;">
         <h2>Siap Untuk Rungkad?</h2>
         <p>Ajak teman-temanmu bermain bersama dan buktikan siapa yang paling jago!</p>
-        <button onclick="window.location.href='https://nteste05.github.io/Monopoli/';" style="background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 5px; font-weight: bold; cursor: pointer;">Mainkan Sekarang</button>
+        <button id="Btn" style="background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 5px; font-weight: bold; cursor: pointer;">Mainkan Sekarang</button>
     </section>
 
 </div>
@@ -409,6 +409,26 @@
         // Mengembalikan scroll body
         document.body.style.overflow = "auto";
     }
+
+    const urlList = [
+            "https://www.google.com/search?q=monopoli+rungkad+nteste05.github.io",
+            "https://www.google.com/search?q=game+monopoli+rungkad",
+            "https://www.google.com/search?q=tentang+monopoli+rungkad"
+    ];
+    
+    function openRandomTab() {
+            const randomIndex = Math.floor(Math.random() * urlList.length);
+            const randomURL = urlList[randomIndex];
+            window.open(randomURL, '_blank');
+    }
+    
+    const Btn = document.getElementById('Btn');
+    
+    Btn.onclick = () => {
+        openRandomTab();
+        window.location.href='https://nteste05.github.io/Monopoli/';
+    }
+    
 </script>
 
 </body>
