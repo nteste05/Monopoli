@@ -7,6 +7,7 @@
     <link rel="canonical" href="https://nteste05.github.io/Monopoli/" />
     <link rel="icon" type="image/jpg" href="mrungkad-favicon.jpg" sizes="32x32">
     <link rel="apple-touch-icon" sizes="180x180" href="mrungkad-favicon.jpg">
+    <link href="https://googleapis.com" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     
     <title>Monopoli Rungkad - Game Seru Penuh Tantangan</title>
@@ -29,12 +30,9 @@
     <style>
         :root { 
             --p1: #ff4757; --p2: #2e86de; --p3: #2ecc71; --p4: #f1c40f; 
-            --bg: #1e272e; 
+            --bg: #1e272e; --dark: #1a1a1a; --accent: #ffc107;
         }
-        body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        
-        header { width: 100%; padding: 10px; text-align: center; background: #c0392b; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h1 { margin: 0; font-size: 20px; letter-spacing: 2px; text-transform: uppercase; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
 
         /* Overlay Pemilihan Pemain */
         #setup-overlay {
@@ -47,7 +45,7 @@
         .btn-select { padding: 15px 25px; font-size: 18px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; background: #e74c3c; color: white; transition: 0.2s; }
         .btn-select:hover { transform: scale(1.1); background: #ff4757; }
 
-        .board-container { position: relative; margin-top: 15px; padding: 8px; background: #34495e; border-radius: 15px; }
+        .board-container { position: relative; margin-top: 10px; padding: 8px; background: #34495e; border-radius: 15px; }
         .center-text {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
             font-size: clamp(18px, 5vw, 35px); font-weight: 900; 
@@ -99,6 +97,92 @@
             pointer-events: none; cursor: not-allowed;}
         .player-card.active button {
             pointer-events: auto; cursor: pointer;}
+            
+            /* --- NAVIGATION & SIDEBAR --- */
+        .navbar {
+            background-color: var(--dark);
+            color: white;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0px 20px;
+        }
+
+        header h1 {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 2000;
+            top: 0;
+            left: 0;
+            background-color: var(--dark);
+            overflow-x: hidden;
+            transition: 0.3s;
+            padding-top: 10px;
+        }
+
+        .sidebar a {
+            padding: 15px 30px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            color: #ccc;
+            display: block;
+            transition: 0.2s;
+            border-bottom: 1px solid #333;
+        }
+
+        .sidebar a:hover {
+            color: var(--accent);
+            background-color: #222;
+        }
+
+        .sidebar .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 36px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .overlaynav {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1500;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 10px 10px;
+            background: var(--dark);
+            color: #888;
+            font-size: 0.9rem;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
     </style>
 </head>
 <body>
@@ -114,8 +198,24 @@
             </div>
         </div>
     </div>
-
-    <header><h1>MONOPOLI RUNGKAD</h1></header>
+    
+    <!-- Sidebar Menu -->
+    <div id="mySidebar" class="sidebar">
+        <span class="close-btn" onclick="closeNav()">&times;</span>
+        <a href="https://nteste05.github.io/Monopoli/tentang.html" onclick="closeNav()">📜 Tentang</a>
+        <a href="#" onclick="closeNav()">🎲 Game Lainnya</a>
+        </div>
+        
+        <!-- Overlay Background -->
+        <div id="overlaynav" class="overlaynav" onclick="closeNav()">
+        </div>
+        
+        <!-- Top Navigation -->
+        <nav class="navbar">
+            <button class="menu-btn" onclick="openNav()">&#9776;</button>
+            <header><h1>MONOPOLI RUNGKAD</h1>
+            </header>
+        </nav>
 
     <div class="board-container">
         <div class="center-text">MONOPOLI RUNGKAD</div>
@@ -513,6 +613,28 @@
             const log = document.getElementById('log');
             log.innerHTML = `<div>> ${msg}</div>` + log.innerHTML;
         }
+        
+        const sidebar = document.getElementById("mySidebar");
+    const overlaynav = document.getElementById("overlaynav");
+
+    function openNav() {
+        sidebar.style.width = "280px";
+        overlaynav.style.display = "block";
+        // Mencegah scroll pada body saat menu buka
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeNav() {
+        sidebar.style.width = "0";
+        overlaynav.style.display = "none";
+        // Mengembalikan scroll body
+        document.body.style.overflow = "auto";
+    }
+        
     </script>
+    <footer>
+    <p>&copy; 2026 <a style="color: inherit; text-decoration: none;" href="https://nteste05.github.io/Monopoli">Monopoli Rungkad Indonesia.</a> <br> 
+    <small>Konten ini hanya untuk tujuan hiburan dan permainan papan.</small></p>
+</footer>
 </body>
 </html>
