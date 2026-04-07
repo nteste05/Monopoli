@@ -420,7 +420,7 @@
                     p.money -= bonus;
                     const pesanKoplak= [
                         `Apes! P${currentPlayer+1} kena Tipu Rp ${bonus}`,
-                        `Waduh, uang P${currentPlayer+1} hilang di perjalanan Rp ${bonus}`,
+                        `Waduh, uang P${currentPlayer+1} hilang di jalan Rp ${bonus}`,
                         `Uang P${currentPlayer+1} diambil tuyul Rp ${bonus}`
                     ];
                     const randomPesan = pesanKoplak[Math.floor(Math.random() * pesanKoplak.length)];
@@ -576,7 +576,7 @@
             });
             // 4. Cek Kondisi Menang berdasarkan Total Wealth pemain peringkat 1
             const leader = sortedPlayers[0]; 
-            if (leader.totalWealth >= 3000000) {
+            if (leader.totalWealth >= 5000000) {
                 addLog(`🏆 PERMAINAN BERAKHIR: Pemain ${leader.id + 1} Menang dengan Total Kekayaan Rp${leader.totalWealth.toLocaleString()}!`);
                 const rankingText = sortedPlayers.map((p, idx) => `${idx + 1}. Pemain ${p.id + 1}: Rp${p.totalWealth.toLocaleString()}`).join("\n");
                 
